@@ -8,12 +8,10 @@ import timeit
 import os
 from tqdm import tqdm
 import argparse
-import shutil
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument("--noisy", type=str, help="path/to/noisy/voice/(or the folder of noisy voice)")
 parser.add_argument("--saved_folder", type=str, help="path/to/output/folder", default="metricgan_exp")
-parser.add_argument("--save_ckpt", type=bool, default=False)
 args = parser.parse_args()
 
 def enhance(enhance_model, noise_path):
@@ -25,7 +23,6 @@ def enhance(enhance_model, noise_path):
         enhanced = enhance_model.enhance_batch(noisy, lengths=torch.tensor([1.]))
         fname = "denoised"+os.path.basename(noise_path)
         torchaudio.save("metricgan_exp/"+fname, enhanced.cpu(), 16000)
-        os.remove(os.path.basename(noise_path))
     else:
         for file in tqdm(os.listdir(noise_path)):
             fpath = noise_path+'/'+file
@@ -43,8 +40,6 @@ if __name__ == "__main__":
         source="speechbrain/metricgan-plus-voicebank",
         savedir="pretrained_models/metricgan-plus-voicebank",
     )
-    if not args.save_ckpt:
-        shutil.rmtree("pretrained_models", ignore_errors=True)
     enhance(enhance_model=enhance_model, 
             noise_path=args.noisy)
     stop = timeit.default_timer()
